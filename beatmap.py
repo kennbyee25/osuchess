@@ -5,6 +5,7 @@ class Section:
     def parse_line(self, line):
         pass
 
+
 class KeyValueSection(Section):
     def __init__(self):
         super().__init__()
@@ -12,6 +13,13 @@ class KeyValueSection(Section):
     def parse_line(self, line):
         [key, value] = line.split(':')
         self.__setattr__(key.strip(), value.strip())
+
+    def __str__(self):
+        strout = ""
+        for key, value in self.__dict__.items():
+            strout += f"{key}:{value}\n"
+        return strout
+
 
 class CommaSeparatedSection(Section):
     def __init__(self):
@@ -21,6 +29,11 @@ class CommaSeparatedSection(Section):
     def parse_line(self, line):
         self.sequence.append(line.split(','))
 
+    def __str__(self):
+        strout = ""
+        for item in self.sequence:
+            strout += f"{','.join(item)}\n"
+        return strout
 
 class General(KeyValueSection):
     def __init__(self):
@@ -58,8 +71,17 @@ class Colours(KeyValueSection):
 
 
 class HitObjects(CommaSeparatedSection):
+    '''
+    # TODO include setup of hit object i.e. x, y, t, ... etc format
+    # TODO handle '|' character
+    # TODO add functionality to add hit object (note, slider, extras)
+    # TODO create function (outside of beatmap) that converts a chess game to a set of coordinated or something
+    # TODO create a function that converts a set of coordinates to a beatmap using add_object()
+    '''
     def __init__(self):
         super().__init__()
+
+    def add_object(self):
 
 
 class Beatmap:
@@ -76,6 +98,7 @@ class Beatmap:
     def __init__(self, filepath):
         self.filepath = filepath
         self.file_format = ""
+
         self.general = General()
         self.editor = Editor()
         self.metadata = Metadata()
@@ -85,10 +108,7 @@ class Beatmap:
         self.colours = Colours()
         self.hit_objects = HitObjects()
 
-        self.parse_osu_file(filepath)
-
-    def parse_osu_file(self, filepath):
-        model_dict = {
+        self.model_dict = {
             "General": self.general,
             "Editor": self.editor,
             "Metadata": self.metadata,
@@ -99,22 +119,29 @@ class Beatmap:
             "HitObjects": self.hit_objects,
         }
 
+        self.parse_osu_file(filepath)
+
+    def parse_osu_file(self, filepath):
         section = None
-        with open(filepath, "r") as f:
-            self.file_format = f.readline()
-            for line in f:
+        with open(filepath, "r", encoding="utf-8") as f:
+            lines = f.readlines()
+            self.file_format = lines[0]
+            for line in lines[1:]:
                 line_stripped = line.strip()
                 if line_stripped and not line_stripped.startswith("//"):
                     if line_stripped[0] == '[' and line_stripped[-1] == ']':
                         section_title = line_stripped[1:-1]
-                        section = model_dict[section_title]
+                        section = self.model_dict[section_title]
                     else:
                         section.parse_line(line_stripped)
-
         return
 
     def write(self, filepath=None):
         if filepath is None:
             filepath = self.filepath
-        # convert data to string format and write to file
+        with open(filepath, "w+", encoding="utf-8") as f:
+            f.write(self.file_format)
+            for section_name, model in self.model_dict.items():
+                f.write(f"\n[{section_name}]\n")
+                f.write(model.__str__())
         return

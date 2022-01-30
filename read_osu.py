@@ -1,3 +1,7 @@
 from beatmap import Beatmap
 
-b = Beatmap(r"C:\Users\Kenneth\AppData\Local\osu!\Songs\396959 Koxx - A Fool Moon Night\Koxx - A Fool Moon Night (ChunSern) [Normal Lv.74].osu")
+src_fp = r"C:\Users\Kenneth\AppData\Local\osu!\Songs\694119 Aimer - everlasting snow\Aimer - everlasting snow (Wafu) [Snow].osu"
+dest_fp = r"C:\Users\Kenneth\AppData\Local\osu!\Songs\694119 Aimer - everlasting snow\testdiff.osu"
+
+b = Beatmap(src_fp)
+b.write(dest_fp)
